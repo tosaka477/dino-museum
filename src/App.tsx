@@ -16,6 +16,7 @@ import {
   BookOpen,
   type LucideIcon,
 } from "lucide-react";
+import TargetCursor from "./components/TargetCursor";
 
 /* ---------------------------------- 数据 ---------------------------------- */
 
@@ -265,6 +266,8 @@ export default function App() {
 
   return (
     <main className="relative w-full bg-[#EBEBEB] text-[#111] font-sans overflow-x-hidden">
+      {/* 全局准星光标（括号锁定可交互元素，触屏设备自动禁用） */}
+      <TargetCursor spinDuration={2.5} hideDefaultCursor parallaxOn />
       {/* ============================ SECTION 1: HERO ============================ */}
       <section
         ref={heroRef}
@@ -420,7 +423,7 @@ export default function App() {
                 <a
                   key={l}
                   href="#"
-                  className="hover:text-black hover:underline transition-colors"
+                  className="cursor-target hover:text-black hover:underline transition-colors"
                 >
                   {l}
                 </a>
@@ -468,7 +471,7 @@ export default function App() {
                     key={l}
                     href="#"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="hover:text-black transition-colors"
+                    className="cursor-target hover:text-black transition-colors"
                   >
                     {l}
                   </a>
@@ -632,7 +635,7 @@ export default function App() {
             <motion.button
               key={label}
               variants={fadeUp}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-300 text-[11px] font-medium uppercase tracking-wider bg-white/50 backdrop-blur-sm text-gray-800 transition-colors duration-300 hover:border-black hover:bg-black hover:text-white"
+              className="cursor-target flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-300 text-[11px] font-medium uppercase tracking-wider bg-white/50 backdrop-blur-sm text-gray-800 transition-colors duration-300 hover:border-black hover:bg-black hover:text-white"
             >
               <Icon size={14} strokeWidth={2} />
               {label}
@@ -781,7 +784,7 @@ export default function App() {
                 <button
                   key={ch.name}
                   onClick={() => setActiveChapter(i)}
-                  className={`flex items-center justify-between border-b border-gray-800/80 px-8 py-8 text-left transition-colors duration-500 ${
+                  className={`cursor-target flex items-center justify-between border-b border-gray-800/80 px-8 py-8 text-left transition-colors duration-500 ${
                     isActive ? "text-white" : "text-[#444] hover:text-[#999]"
                   }`}
                 >
