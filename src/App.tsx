@@ -28,7 +28,8 @@ const chaptersData = [
   { name: "史前巨兽", image: "/media/chapter-5.jpg" },
 ];
 
-const VIDEO_URL = "/media/hero-bg.mp4";
+const SKETCH_URL = "/media/hero-sketch.jpg";
+const SKELETON_URL = "/media/hero-skeleton.png";
 const PTERO_URL = "/media/ptero.png";
 
 const navLinks = ["参观", "展览", "探索", "学习", "关于"];
@@ -192,15 +193,44 @@ function LeafMark({ className }: { className?: string }) {
 /* --------------------------------- 主组件 --------------------------------- */
 
 export default function App() {
-  const [showVideo, setShowVideo] = useState(false);
   const [activeChapter, setActiveChapter] = useState(2); // 初始为「中生代爬行动物」
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 2800ms 后显示背景视频
+  // 首屏滚动视差：骨架向左走出画面，素描背景右移淡出
+  const heroRef = useRef<HTMLElement>(null);
+  const [heroProgress, setHeroProgress] = useState(0);
+
   useEffect(() => {
-    const t = setTimeout(() => setShowVideo(true), 2800);
-    return () => clearTimeout(t);
+    let raf = 0;
+    const update = () => {
+      const el = heroRef.current;
+      if (!el) return;
+      const h = el.offsetHeight || 1;
+      setHeroProgress(Math.min(1, Math.max(0, window.scrollY / h)));
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, []);
+
+  const sketchStyle = {
+    transform: `translateX(${heroProgress * 28}%)`,
+    opacity: Math.max(0, 1 - heroProgress / 0.8),
+  };
+  const skeletonStyle = {
+    transform: `translateX(${-heroProgress * 120}%)`,
+    opacity:
+      heroProgress <= 0.6 ? 1 : Math.max(0, 1 - (heroProgress - 0.6) / 0.4),
+  };
 
   // 每 3500ms 自动轮换章节（手动点击后重新计时）
   useEffect(() => {
@@ -214,29 +244,47 @@ export default function App() {
   const current = String(activeChapter + 1).padStart(2, "0");
 
   return (
-    <main className="relative w-full bg-[#fcfcfc] text-[#111] font-sans overflow-x-hidden">
+    <main className="relative w-full bg-[#EBEBEB] text-[#111] font-sans overflow-x-hidden">
       {/* ============================ SECTION 1: HERO ============================ */}
-      <section className="relative w-full min-h-screen flex flex-col overflow-hidden">
-        {/* 1D 背景视频（2800ms 后淡入） */}
-        <AnimatePresence>
-          {showVideo && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1.4, ease: "easeOut" }}
-              className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
-            >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-                src={VIDEO_URL}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <section
+        ref={heroRef}
+        className="relative w-full min-h-screen flex flex-col overflow-hidden"
+      >
+        {/* 1D 素描背景（滚轮下滑时右移并淡出） */}
+        <div
+          style={sketchStyle}
+          className="absolute inset-0 z-0 pointer-events-none will-change-transform"
+        >
+          <motion.img
+            src={SKETCH_URL}
+            alt=""
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.8, ease: "easeOut" }}
+            className="w-full h-full object-cover select-none"
+          />
+        </div>
+
+        {/* 1E 骨架前景（缓慢浮现；滚轮下滑时向左走出画面） */}
+        <div className="absolute inset-0 z-[4] flex items-center justify-center pointer-events-none overflow-hidden">
+          <div
+            style={skeletonStyle}
+            className="w-[150vw] md:w-[112vw] shrink-0 mt-[4vh] md:mt-[6vh] will-change-transform"
+          >
+            <motion.img
+              src={SKELETON_URL}
+              alt="霸王龙骨架化石"
+              initial={{ opacity: 0, scale: 0.985 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                duration: 2.4,
+                ease: [0.16, 1, 0.3, 1],
+                delay: 0.5,
+              }}
+              className="w-full h-auto select-none"
+            />
+          </div>
+        </div>
 
         {/* 1A HEADER（NHM 标志） */}
         <motion.header
@@ -386,7 +434,7 @@ export default function App() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="md:hidden relative z-30 bg-[#fcfcfc] border-b border-gray-200 shadow-xl px-6 py-10"
+              className="md:hidden relative z-30 bg-[#EBEBEB] border-b border-gray-200 shadow-xl px-6 py-10"
             >
               <nav className="flex flex-col space-y-6 text-sm font-mono tracking-[0.2em] uppercase text-gray-800">
                 {navLinks.map((l) => (
@@ -444,7 +492,7 @@ export default function App() {
               variants={fadeUp}
               className="group relative flex items-center gap-3 overflow-hidden bg-[#1a1a1a] px-6 py-3.5 border border-[#1a1a1a] rounded-md shadow-sm transition-all duration-300 hover:-translate-y-[0.5px] hover:shadow-[3px_3px_0px_rgba(17,17,17,0.5)] active:translate-y-0 active:shadow-sm"
             >
-              <span className="absolute inset-0 bg-[#fcfcfc] -translate-x-[101%] group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+              <span className="absolute inset-0 bg-[#EBEBEB] -translate-x-[101%] group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
               <LeafMark className="relative z-10 w-5 h-5 text-white transition-all duration-500 group-hover:text-[#111] group-hover:scale-110 group-hover:-rotate-12 group-hover:-translate-y-1" />
               <span className="relative z-10 text-[15px] font-medium text-white transition-colors duration-500 group-hover:text-[#111]">
                 立即探索
@@ -518,7 +566,7 @@ export default function App() {
       </section>
 
       {/* ====================== SECTION 2: 探索我们的世界 ====================== */}
-      <section className="relative w-full min-h-[75vh] md:min-h-screen bg-[#fcfcfc] flex flex-col items-center pt-24 md:pt-32 pb-0 z-20">
+      <section className="relative w-full min-h-[75vh] md:min-h-screen bg-[#EBEBEB] flex flex-col items-center pt-24 md:pt-32 pb-0 z-20">
         {/* 2A 区块标签 */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
