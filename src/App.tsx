@@ -265,24 +265,26 @@ export default function App() {
           />
         </div>
 
-        {/* 1E 骨架前景（缓慢浮现；滚轮下滑时向左走出画面） */}
-        <div className="absolute inset-0 z-[4] flex items-center justify-center pointer-events-none overflow-hidden">
+        {/* 1E 骨架前景（走路循环 + 滚轮下滑时向左走出画面） */}
+        <div className="absolute inset-0 z-[4] pointer-events-none overflow-hidden">
           <div
             style={skeletonStyle}
-            className="w-[150vw] md:w-[112vw] shrink-0 mt-[4vh] md:mt-[6vh] will-change-transform"
+            className="absolute left-[-3vw] top-[16vh] md:top-[22vh] w-[220vw] md:w-[96vw] will-change-transform"
           >
-            <motion.img
-              src={SKELETON_URL}
-              alt="霸王龙骨架化石"
-              initial={{ opacity: 0, scale: 0.985 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                duration: 2.4,
-                ease: [0.16, 1, 0.3, 1],
-                delay: 0.5,
-              }}
-              className="w-full h-auto select-none"
-            />
+            <div className="dino-walk">
+              <motion.img
+                src={SKELETON_URL}
+                alt="霸王龙骨架化石"
+                initial={{ opacity: 0, scale: 0.985 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{
+                  duration: 2.4,
+                  ease: [0.16, 1, 0.3, 1],
+                  delay: 0.5,
+                }}
+                className="w-full h-auto select-none"
+              />
+            </div>
           </div>
         </div>
 
@@ -636,11 +638,11 @@ export default function App() {
           alt="翼龙化石"
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
-          initial={{ x: "-50%", y: "-65%", opacity: 0 }}
-          whileInView={{ x: "-50%", y: "-78%", opacity: 1 }}
+          initial={{ x: "-50%", y: "-52%", opacity: 0 }}
+          whileInView={{ x: "-50%", y: "-64%", opacity: 1 }}
           viewport={{ once: true, margin: "100px" }}
           transition={{ duration: 1.4, ease: "easeOut" }}
-          className="absolute top-0 left-1/2 w-[160vw] md:w-[1100px] pointer-events-none z-0"
+          className="absolute top-0 left-1/2 w-[150vw] md:w-[1180px] pointer-events-none z-0"
         />
 
         {/* 3B 标题区 */}
