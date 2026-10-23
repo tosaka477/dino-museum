@@ -84,7 +84,7 @@ function SandTransitionImage({
 
   useEffect(() => {
     const entering = isPresent;
-    const duration = 900;
+    const duration = 620;
     const start = performance.now();
     let raf = 0;
 
@@ -227,9 +227,9 @@ export default function App() {
     opacity: Math.max(0, 1 - heroProgress / 0.8),
   };
   const skeletonStyle = {
-    transform: `translateX(${-heroProgress * 120}%)`,
+    transform: `translateX(${-heroProgress * 105}%)`,
     opacity:
-      heroProgress <= 0.6 ? 1 : Math.max(0, 1 - (heroProgress - 0.6) / 0.4),
+      heroProgress <= 0.7 ? 1 : Math.max(0, 1 - (heroProgress - 0.7) / 0.3),
   };
 
   // 每 3500ms 自动轮换章节（手动点击后重新计时）
@@ -269,7 +269,7 @@ export default function App() {
         <div className="absolute inset-0 z-[4] pointer-events-none overflow-hidden">
           <div
             style={skeletonStyle}
-            className="absolute left-[-3vw] top-[16vh] md:top-[22vh] w-[220vw] md:w-[96vw] will-change-transform"
+            className="absolute left-[-1vw] top-[19vh] md:top-[26vh] w-[96vw] md:w-[100vw] will-change-transform"
           >
             <div className="dino-walk">
               <motion.img
@@ -458,7 +458,7 @@ export default function App() {
         <div className="relative z-10 flex-1 flex justify-between w-full">
           {/* 1E 左侧栏内容 */}
           <motion.div
-            className="px-10 md:px-16 mt-20 sm:mt-28 md:mt-32 w-[320px]"
+            className="px-10 md:px-16 mt-[13rem] md:mt-[15rem] w-[320px]"
             initial="initial"
             animate="animate"
             variants={{
@@ -467,14 +467,14 @@ export default function App() {
           >
             <motion.div
               variants={fadeUp}
-              className="flex items-center gap-4 text-xs font-mono mb-10"
+              className="flex items-center gap-4 text-xs font-mono mb-6"
             >
               <span>01</span>
               <span className="block w-16 h-[1.5px] bg-black/20" />
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-[3.5rem] md:text-[5rem] font-normal tracking-tight leading-[1] mb-8"
+              className="text-[3.5rem] md:text-[4rem] font-normal tracking-tight leading-[1] mb-6"
             >
               永恒的
               <br />
@@ -482,7 +482,7 @@ export default function App() {
             </motion.h2>
             <motion.p
               variants={fadeUp}
-              className="text-[13px] md:text-[14px] text-gray-700 w-[240px] leading-[1.6] mb-10"
+              className="text-[13px] md:text-[14px] text-gray-700 w-[240px] leading-[1.6] mb-6"
             >
               走进自然世界，
               <br />
@@ -555,7 +555,7 @@ export default function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 1 }}
-          className="absolute bottom-10 left-[2.5rem] md:left-[4rem] hidden md:flex items-center gap-4 z-10"
+          className="absolute bottom-10 right-8 md:right-16 hidden md:flex items-center gap-4 z-10"
         >
           <span className="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center gap-[4px]">
             <span className="block w-[1px] h-[12px] bg-gray-600" />
@@ -642,7 +642,7 @@ export default function App() {
           whileInView={{ x: "-50%", y: "-64%", opacity: 1 }}
           viewport={{ once: true, margin: "100px" }}
           transition={{ duration: 1.4, ease: "easeOut" }}
-          className="absolute top-0 left-1/2 w-[150vw] md:w-[1180px] pointer-events-none z-0"
+          className="absolute top-0 left-1/2 w-[190vw] md:w-[1320px] pointer-events-none z-0"
         />
 
         {/* 3B 标题区 */}
@@ -698,14 +698,24 @@ export default function App() {
           {/* 左面板（35%） */}
           <div className="relative w-full md:w-[35%] border-b md:border-b-0 md:border-r border-gray-800 min-h-[400px] md:min-h-[500px] flex flex-col justify-between p-8 overflow-hidden">
             <div className="relative z-10 text-gray-500 text-xl tracking-[0.3em]">***</div>
-            <AnimatePresence mode="wait">
-              <SandTransitionImage
-                key={activeChapter}
-                src={chaptersData[activeChapter].image}
-                alt={chaptersData[activeChapter].name}
-                className="absolute inset-0 w-[80%] h-[80%] m-auto object-contain mix-blend-lighten"
-              />
-            </AnimatePresence>
+            <div
+              className="absolute inset-0 p-[7%]"
+              style={{
+                maskImage:
+                  "radial-gradient(ellipse at center, #000 42%, transparent 76%)",
+                WebkitMaskImage:
+                  "radial-gradient(ellipse at center, #000 42%, transparent 76%)",
+              }}
+            >
+              <AnimatePresence mode="wait">
+                <SandTransitionImage
+                  key={activeChapter}
+                  src={chaptersData[activeChapter].image}
+                  alt={chaptersData[activeChapter].name}
+                  className="w-full h-full object-contain mix-blend-lighten"
+                />
+              </AnimatePresence>
+            </div>
             <div className="relative z-10 flex items-center gap-3 text-[10px] font-mono tracking-widest uppercase">
               <span className="relative inline-block h-[14px] w-[22px] overflow-hidden">
                 <AnimatePresence mode="wait">
