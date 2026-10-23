@@ -29,8 +29,8 @@ const chaptersData = [
 ];
 
 const SKETCH_URL = "/media/hero-sketch.jpg";
-const SKELETON_URL = "/media/hero-skeleton.png";
-const PTERO_URL = "/media/ptero.png";
+const SKELETON_VIDEO_URL = "/media/trex-walk.webm";
+const PTERO_VIDEO_URL = "/media/ptero-fly.webm";
 
 const navLinks = ["参观", "展览", "探索", "学习", "关于"];
 
@@ -196,17 +196,32 @@ export default function App() {
   const [activeChapter, setActiveChapter] = useState(2); // 初始为「中生代爬行动物」
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 首屏滚动视差：骨架向左走出画面，素描背景右移淡出
+  // 首屏滚动视差：骨架视频随滚动播放（骨架自行向左走出画面），素描背景右移淡出
   const heroRef = useRef<HTMLElement>(null);
   const [heroProgress, setHeroProgress] = useState(0);
+  const skelVideoRef = useRef<HTMLVideoElement | null>(null);
+  const pteroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     let raf = 0;
     const update = () => {
       const el = heroRef.current;
-      if (!el) return;
-      const h = el.offsetHeight || 1;
-      setHeroProgress(Math.min(1, Math.max(0, window.scrollY / h)));
+      if (el) {
+        const h = el.offsetHeight || 1;
+        setHeroProgress(Math.min(1, Math.max(0, window.scrollY / h)));
+      }
+      // 翼龙视频滚动驱动：元素顶部从视口底部滑入的进度映射为视频时间轴，
+      // 翼龙从远处飞来，滚动到位后停在画面中
+      const v = pteroVideoRef.current;
+      if (v && v.duration) {
+        const r = v.getBoundingClientRect();
+        const vh = window.innerHeight || 1;
+        const p = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.9)));
+        const target = p * Math.max(0, v.duration - 0.04);
+        if (Math.abs(v.currentTime - target) > 1 / 30) {
+          v.currentTime = target;
+        }
+      }
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -226,11 +241,16 @@ export default function App() {
     transform: `translateX(${heroProgress * 28}%)`,
     opacity: Math.max(0, 1 - heroProgress / 0.8),
   };
-  const skeletonStyle = {
-    transform: `translateX(${-heroProgress * 105}%)`,
-    opacity:
-      heroProgress <= 0.7 ? 1 : Math.max(0, 1 - (heroProgress - 0.7) / 0.3),
-  };
+
+  // 滚动驱动骨架视频：滚动进度映射为视频时间轴，骨架向左自然走动直至出画
+  useEffect(() => {
+    const v = skelVideoRef.current;
+    if (!v || !v.duration) return;
+    const target = heroProgress * Math.max(0, v.duration - 0.04);
+    if (Math.abs(v.currentTime - target) > 1 / 30) {
+      v.currentTime = target;
+    }
+  }, [heroProgress]);
 
   // 每 3500ms 自动轮换章节（手动点击后重新计时）
   useEffect(() => {
@@ -265,26 +285,30 @@ export default function App() {
           />
         </div>
 
-        {/* 1E 骨架前景（走路循环 + 滚轮下滑时向左走出画面） */}
+        {/* 1E 骨架视频（载入渐显；滚动驱动播放，骨架向左自然走出画面） */}
         <div className="absolute inset-0 z-[4] pointer-events-none overflow-hidden">
-          <div
-            style={skeletonStyle}
-            className="absolute left-[-1vw] top-[19vh] md:top-[26vh] w-[96vw] md:w-[100vw] will-change-transform"
-          >
-            <div className="dino-walk">
-              <motion.img
-                src={SKELETON_URL}
-                alt="霸王龙骨架化石"
-                initial={{ opacity: 0, scale: 0.985 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  duration: 2.4,
-                  ease: [0.16, 1, 0.3, 1],
-                  delay: 0.5,
-                }}
-                className="w-full h-auto select-none"
-              />
-            </div>
+          <div className="absolute left-[-5vw] top-[19vh] md:top-[26vh] w-[110vw] will-change-transform">
+            <motion.video
+              ref={skelVideoRef}
+              src={SKELETON_VIDEO_URL}
+              muted
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              initial={{ opacity: 0, scale: 0.985 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                duration: 2.4,
+                ease: [0.16, 1, 0.3, 1],
+                delay: 0.5,
+              }}
+              onLoadedMetadata={(e) => {
+                e.currentTarget.pause();
+                e.currentTarget.currentTime = 0;
+              }}
+              className="w-full h-auto select-none"
+              aria-label="霸王龙骨架行走影像"
+            />
           </div>
         </div>
 
@@ -616,8 +640,8 @@ export default function App() {
           ))}
         </motion.div>
 
-        {/* 2D 占位区（为翼龙图片向上重叠留白） */}
-        <div className="min-h-[220px] md:min-h-[450px]" />
+        {/* 2D 占位区（为翼龙视频向上重叠留白） */}
+        <div className="min-h-[140px] md:min-h-[340px]" />
 
         {/* 2E 底部文字 */}
         <div className="absolute bottom-0 left-0 w-full px-8 md:px-16 pb-8 md:pb-12 pointer-events-none hidden md:flex justify-between">
@@ -632,17 +656,24 @@ export default function App() {
 
       {/* ======================= SECTION 3: 远古珍藏 ======================= */}
       <section className="relative w-full bg-[#0a0a0a] text-white flex flex-col z-30">
-        {/* 3A 翼龙图片（向上重叠） */}
-        <motion.img
-          src={PTERO_URL}
-          alt="翼龙化石"
-          crossOrigin="anonymous"
-          referrerPolicy="no-referrer"
-          initial={{ x: "-50%", y: "-52%", opacity: 0 }}
-          whileInView={{ x: "-50%", y: "-64%", opacity: 1 }}
+        {/* 3A 翼龙视频（向上重叠；滚动驱动播放，翼龙从远处飞来停在画面中） */}
+        <motion.video
+          ref={pteroVideoRef}
+          src={PTERO_VIDEO_URL}
+          muted
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          onLoadedMetadata={(e) => {
+            e.currentTarget.pause();
+            e.currentTarget.currentTime = 0;
+          }}
+          initial={{ x: "-50%", y: "-46%", opacity: 0 }}
+          whileInView={{ x: "-50%", y: "-66%", opacity: 1 }}
           viewport={{ once: true, margin: "100px" }}
           transition={{ duration: 1.4, ease: "easeOut" }}
-          className="absolute top-0 left-1/2 w-[190vw] md:w-[1320px] pointer-events-none z-0"
+          className="absolute top-0 left-1/2 w-[170vw] md:w-[1200px] max-w-none pointer-events-none z-0"
+          aria-label="翼龙骨架飞来影像"
         />
 
         {/* 3B 标题区 */}
@@ -654,18 +685,7 @@ export default function App() {
             transition={{ duration: 1, ease: easeOutExpo }}
             className="text-[1.8rem] md:text-[3rem] lg:text-[3.8rem] xl:text-[4rem] leading-[1.15] font-medium tracking-tight text-white max-w-[950px]"
           >
-            从数百万年的奇迹
-            <span className="inline-flex gap-2 md:gap-3 align-middle mx-2 md:mx-4 translate-y-[-4px]">
-              {[Bone, Dna, Leaf].map((Icon, i) => (
-                <span
-                  key={i}
-                  className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-gray-600 bg-black text-gray-400 flex items-center justify-center transition-colors duration-300 hover:bg-white hover:text-black hover:border-white"
-                >
-                  <Icon size={22} />
-                </span>
-              ))}
-            </span>
-            与发现中典藏而来。
+            从数百万年的奇迹与发现中典藏而来。
           </motion.h2>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
